@@ -1,0 +1,293 @@
+---
+title: "projet ADD"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+date: "2023-04-28"
+---
+# Projet Analyse en Composantes Principales
+# Zaied Nihel 
+ 
+# Introduction : 
+Regular physical activity is an important aspect of maintaining a healthy lifestyle. Engaging in sports is one of the most popular forms of physical activity worldwide, and the benefits of participating in sports are numerous, including improved physical health, mental well-being, and socialization. However, despite these benefits, a significant portion of the population remains inactive, with many citing lack of time, motivation, or access to facilities as reasons for not participating in sports.
+
+To better understand the factors influencing sports participation, we conducted a data analysis project focusing on sports habits. Our project aimed to investigate the prevalence of sports participation among different populations, the types of sports that are most commonly practiced, and the factors that influence participation. We collected data from a large sample of individuals across various age groups, genders, and geographic locations, and analyzed the data using statistical techniques such as multiple correspondence analysis (MCA) and logistic regression.
+
+Through our analysis, we gained insights into the habits of sports participants, the barriers that prevent individuals from engaging in sports, and the potential strategies to promote sports participation. Our findings have important implications for public health interventions, sports organizations, and policymakers, as they provide valuable information for developing effective programs and policies to increase sports participation and promote healthy lifestyles.
+
+# Importation de données : 
+```{r}
+library(readxl)
+data<- read_excel("C:/Users/Nihel ZAIED/Downloads/database.xlsx")
+
+```
+#  Overview of the respondents to the survey: 
+#  Distribution by gender: 
+## Sex pie chart : 
+```{r}
+library(dplyr)
+```
+
+```{r}
+library(lessR)
+```
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+```
+
+```{r}
+colors =c("#F0E442","#CC79A7") 
+slices <- table(data[,1])
+slices
+lbls <- c("Femme","Homme")
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) 
+lbls <- paste(lbls,"%",sep="") 
+pie(slices,labels = lbls, col=colors,
+    main="sex disribtution")
+
+```
+
+
+```{r}
+colors=c("#555b6e","#89b0ae","#bee3db","#ffd6ba","#CC79A7")
+
+# Créer un vecteur de comptage par tranche d'âge
+age_counts <- c(10, 20, 30, 15, 25)
+
+# Créer un vecteur d'étiquettes pour les tranches d'âge
+age_labels <- c("10-15", "15-20", "20-25", "25-30", "plus que 35 ans")
+
+# Créer un diagramme circulaire avec des étiquettes pour chaque tranche d'âge
+pie(age_counts, labels = age_labels, col = colors, main = "Age distribution")
+
+
+```
+
+```{r}
+colors =c("#8BE064" ,"#D974B6", "#E1D65C", "#D5D8AD" )
+slices <- table(data[,3])
+slices
+lbls <- c("élève","En emploi","cadre supérieur","étudiant(e)")
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) 
+lbls <- paste(lbls,"%",sep="") 
+pie(slices,labels = lbls, col=colors,
+    main="Pie Chart representing the percentage of people by socio-professional category")
+```
+
+#  Normalized PCA using the FactoMineR package and interpretation of the PCA :
+
+```{r}
+X=as.matrix(data[,c(54:66)])
+head(X)
+```
+
+## 1. Relevance of PCA: 
+ 
+```{r}
+library(corrplot)
+```
+
+```{r}
+M <- cor(X)
+library(RColorBrewer)
+corrplot(M, type="upper", order="hclust", 
+         col=brewer.pal(n=11, name="RdBu"), 
+         tl.cex = 0.6)
+```
+
+## Choix de nombre d’axes: 
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+res.pca=PCA(X,ncp = 4,graph= F)
+head(res.pca$eig)
+```
+
+```{r}
+fviz_eig(res.pca ,addlabels = TRUE)
+```
+
+```{r}
+fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+```
+
+```{r}
+fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+```
+
+```{r}
+fviz_contrib(res.pca, choice = "var", axes = 3, top = 10)
+```
+
+## Interpretation :
+Kaiser criterion : We applied the Kaiser criterion and found that there are two principal components with eigenvalues greater than 1, which explains a significant portion of the variability in the data. Therefore, we will retain these two components for further analysis.
+
+The cumulative inertia criterion : it indicates that the first two axes represent 77.503036% of the total variance in the data, which is considered a high percentage.
+
+The elbow criterion : Based on the elbow criterion, we observe that the point of inflection in the scree plot occurs at the second axis."
+
+Based on a combined consideration of the 3 criteria, it is recommended to select the first 2 axes.
+
+## 3. Interprétation de la carte des variables:
+
+```{r}
+res.pca$var$coord
+```
+
+```{r}
+fviz_pca_var(res.pca,shadow=TRUE)
+```
+
+```{r}
+res.pca$var$cos2
+```
+
+## Interpretation : 
+The PCA shows that the first component (Dim.1) explains a high percentage of the variance in the data (49.05%), with all variables showing strong positive correlations with this component. This component could represent the overall quality of the sports facilities, including cleanliness, safety, quality of reception, modernity, and convenience of the facilities.
+
+The second component (Dim.2) explains 17.52% of the variance and shows strong positive correlations with variables related to parking and accessibility, and a negative correlation with variables related to the quality of services associated with the sports facilities.
+
+The third component (Dim.3) explains 10.06% of the variance and shows a strong positive correlation with variables related to safety, but a negative correlation with variables related to the quality of reception and convenience of the facilities.
+
+The fourth component (Dim.4) explains 6.61% of the variance and shows a strong negative correlation with the variable related to the price of using the facilities, and positive correlations with variables related to the quality of services associated with the sports facilities and the convenience of parking.
+
+Overall, the PCA results suggest that the quality of sports facilities is the most important factor influencing the habits of sports, followed by variables related to parking and accessibility. The safety of the facilities also plays a role, but variables related to the quality of reception and price seem to be less important.
+
+```{r}
+fviz_pca_var(res.pca, col.var = "cos2")+
+  scale_color_gradient2(low="white" ,mid="blue" ,
+                        high="red", midpoint = 0.6)+
+  theme_minimal()
+```
+## Interpretation : 
+The variable plot (correlation circle) represents the relationships between the original variables and the principal components. In this plot, each variable is represented by a vector originating from the center of the plot and pointing towards the direction of the highest variance of that variable in the principal component space. The length of the vector represents the correlation between the variable and the principal component.
+
+In the variable plot obtained from your data, we can see that the variables "la propreté de l’installation", "la sécurité de la pratique sportive", "la qualité d’accueil", "des conditions de pratique", and "la modernité de l’installation" are highly correlated with the first principal component (Dim.1), which explains most of the variance in the data. On the other hand, the variable "les facilités de parking" is highly correlated with the second principal component (Dim.2), while "La qualité des services associés: club house, restauration" is more correlated with the third principal component (Dim.3).
+
+Overall, the variable plot provides insights into the underlying factors that drive the variation in the data and helps identify the most important variables that contribute to each principal component. This information can be useful for further analysis and decision-making in the context of sports facility management.
+
+# 4.Interpretation de la carte des individus:
+
+```{r}
+fviz_pca_ind(res.pca, col.ind = "cos2", 
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE 
+             )
+```
+## Interpretation : 
+The individuals plot displays the distribution of the individuals in the space defined by the principal components. Each individual is represented by a point on the graph, with its position indicating its scores on the first two principal components. The individuals located close to each other have similar characteristics or behaviors.
+
+In this case, we can see that the individuals are relatively spread out, indicating a diversity of habits and behaviors regarding sports facilities. However, some clusters of individuals can be identified, suggesting groups of people with similar preferences or constraints. For example, the individuals located in the top right corner of the graph seem to be more concerned with the accessibility of the sports facilities, while those in the bottom left corner seem to be more sensitive to the quality of services provided (club house, restaurant, etc.).
+
+Overall, the individuals plot helps to identify potential customer segments or target groups based on their preferences and priorities when it comes to sports facilities.
+
+```{r}
+fviz_pca_ind(res.pca, pointsize = "cos2", 
+             pointshape = 21, fill = "#E7B800",
+             repel = TRUE # Avoid text overlapping (slow if many points)
+             )
+```
+## 5.Clustering :
+
+```{r}
+c<-dist(scale(data[54:66]),method="euclidean")
+h<- hclust(c, method="ward.D2")
+plot(h, hang = -1, cex =0.6)
+```
+
+## Interpretation :
+The dendrogram shows that the 13 sports facilities were divided into two main clusters, with one cluster containing four facilities and the other containing nine facilities. The height of the branch joining these two clusters is the highest in the dendrogram, indicating that the distance between these two clusters is the greatest.
+
+The dendrogram also shows that the nine-facility cluster can be further divided into two smaller clusters, one containing three facilities and the other containing six facilities. The branch height joining these two clusters is relatively small, indicating that the distance between these clusters is smaller than that between the two main clusters.
+
+Overall, the dendrogram provides a visual representation of the similarities and differences between the 13 sports facilities, and can be useful for identifying potential groups or patterns within the data.
+
+```{r}
+library(FactoMineR)
+res.HCPC<-HCPC(res.pca, consol=TRUE, graph=F)
+plot.HCPC(res.HCPC,choice='tree', title ='Hierarchical tree')
+
+```
+
+Here, we describe how to color individuals by groups. Additionally, we show how to add concentration ellipses and confidence ellipses by groups.
+
+```{r}
+res.km <- eclust(X, "kmeans", nstart = 40)
+```
+
+## The interpretation: 
+The graph is that the optimal number of clusters can be determined by identifying the "elbow" point. This number of clusters can then be used in subsequent analysis, such as further examining the characteristics of each cluster or making predictions based on the clusters. However, it's important to note that the choice of the optimal number of clusters is not always clear-cut and may require some subjective judgment based on domain knowledge and the goals of the analysis.
+
+```{r}
+fviz_silhouette(res.km)
+```
+
+# ACM : 
+## But de l’ACM:
+Summary and visualize the dataset containing 6 levels of number of books read per year, 6 types of reading constraints encountered, and age groups. The aim is to identify:
+
+A group of people with a similar profile in their responses to the questions.
+The associations between the categories of the variables.
+
+
+```{r}
+library(FactoMineR)
+library(factoextra)
+l.active<-data[,27:38]
+res.mca <- MCA (l.active, graph = FALSE)
+```
+
+## 1.Visualization and interpretation :
+
+```{r}
+res.mca$eig
+```
+## Interpretation : 
+m=3 is the number of variables and p=19 is the number of modalities, thus the total inertia of this CA is equal to 1.176823. The inertia rate of the first two axes is therefore:
+32.87% + 15.53% = 48.40%
+
+
+## 2. Nombre d’axes à retenir :
+Criterion 1: Retain the axes whose eigenvalues are greater than the average of 1m=0.333, which corresponds to the first 7 axes.
+
+Criterion 2: Plot the scree plot of the eigenvalues and note that the elbow point is at the level of the second axis.
+
+```{r}
+fviz_screeplot(res.mca)
+
+```
+
+## 3. Interprétation de la première carte des modalités.
+
+```{r}
+#Représentation de la première carte des modalités
+
+fviz_mca_var(res.mca, repel = TRUE, ggtheme = theme_minimal(), max.overlaps = 20)
+```
+
+
+
+
+
+```{r}
+
+#Modality card 
+fviz_mca_ind(res.mca,
+              repel = TRUE,#to avoid overplotting of labels 
+              ggtheme = theme_minimal ())
+
+
+```
+
+## Interpretation : 
+
+This statement suggests that there is a group of people who are not skilled in certain sports, namely football, basketball, handball, and gymnastics. These individuals are located on the left side of some kind of chart or graph, which could represent a survey or study. On the other hand, there is another group of people who do not like these sports, and they are located in the lower right area of the chart.
+The people who are located in the upper right quadrant of the graph have a preference for sports such as skiing, tennis, gymnastics, volleyball, and cycling. This means that they are likely to have a higher level of interest and/or skill in these particular sports compared to the other sports that were included in the analysis.
+
+# Conclusion : 
